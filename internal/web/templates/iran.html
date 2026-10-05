@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPN Tunnel Manager - Iran Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --card: #161B22;
+  --border: #30363D;
+  --text: #F0F6FC;
+  --text-dim: #8B949E;
+  --success: #238636;
+  --success-bg: #196C2E;
+  --warning: #D29922;
+  --warning-bg: #9E6A03;
+  --danger: #DA3633;
+  --danger-bg: #A40E26;
+  --accent: #58A6FF;
+  --accent-bg: #1F4E7A;
+  --code-bg: #0D1117;
+  --mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--mono);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  font-size: 14px;
+}
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  background: rgba(22, 27, 34, 0.8);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+.title span { color: var(--accent); }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.status-badge.connected { background: var(--success-bg); color: #7EE787; }
+.status-badge.disconnected { background: var(--danger-bg); color: #F85149; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.grid { display: grid; gap: 16px; }
+@media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1200px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--accent); }
+.card h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.card h2::before { content: ''; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+.field { margin-bottom: 16px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.field input, .field select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 6px; font-family: var(--mono); font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.field input::placeholder { color: var(--text-dim); }
+.code-display { font-family: var(--mono); font-size: 12px; background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; word-break: break-all; position: relative; min-height: 60px; }
+.code-display.copied { border-color: var(--success); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 6px; font-family: var(--mono); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--bg); }
+.btn-primary:hover:not(:disabled) { background: #79C0FF; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover:not(:disabled) { background: #2EA043; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover:not(:disabled) { background: #F85149; }
+.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover:not(:disabled) { background: var(--card); border-color: var(--accent); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.tunnels-list { display: flex; flex-direction: column; gap: 8px; }
+.tunnel-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+.tunnel-info { display: flex; flex-direction: column; gap: 2px; }
+.tunnel-route { font-weight: 500; }
+.tunnel-meta { font-size: 11px; color: var(--text-dim); }
+.tunnel-status { display: flex; align-items: center; gap: 8px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 600px) { .metrics-grid { grid-template-columns: 1fr; } }
+.metric { text-align: center; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+.metric-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.metric-value.ok { color: var(--success); }
+.metric-value.warn { color: var(--warning); }
+.metric-value.danger { color: var(--danger); }
+.metric-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+.chart-container { height: 160px; position: relative; }
+.chart-canvas { width: 100%; height: 100%; }
+.logs { max-height: 300px; overflow-y: auto; font-size: 12px; }
+.log-entry { padding: 4px 8px; border-bottom: 1px solid var(--border); font-family: var(--mono); }
+.log-entry:last-child { border-bottom: none; }
+.log-time { color: var(--text-dim); margin-right: 8px; }
+.log-level.info { color: var(--accent); }
+.log-level.success { color: var(--success); }
+.log-level.warn { color: var(--warning); }
+.log-level.error { color: var(--danger); }
+.hidden { display: none !important; }
+.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 6px; background: var(--card); border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 100; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: var(--success); }
+.toast.error { border-color: var(--danger); }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-content">
+    <div class="title">VPN Tunnel Manager <span>Iran</span></div>
+    <div id="connectionStatus" class="status-badge disconnected">
+      <span class="status-dot"></span>
+      <span>Disconnected</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="grid">
+    <div class="card">
+      <h2>Server Info</h2>
+      <div class="field">
+        <label>Iran IP</label>
+        <input type="text" id="iranIP" value="{{.IranIP}}" readonly>
+      </div>
+      <div class="field">
+        <label>SSH Port</label>
+        <input type="number" id="iranPort" value="{{.IranPort}}" readonly>
+      </div>
+      <div class="field">
+        <label>SSH User</label>
+        <input type="text" id="sshUser" value="{{.Token}}" readonly>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Generate Connection Code</h2>
+      <div class="field">
+        <label>Kharej Server IP</label>
+        <input type="text" id="kharejIP" placeholder="e.g., 1.2.3.4" required>
+      </div>
+      <div class="field">
+        <label>Kharej SSH Port</label>
+        <input type="number" id="kharejPort" value="22" min="1" max="65535">
+      </div>
+      <div class="field">
+        <label>Kharej SSH User</label>
+        <input type="text" id="kharejUser" value="root">
+      </div>
+      <div class="field">
+        <label>Tunnel Ports (comma separated)</label>
+        <input type="text" id="tunnelPorts" value="8080,8081,8082" placeholder="Ports to forward">
+      </div>
+      <div class="field">
+        <label>Code TTL (hours)</label>
+        <input type="number" id="ttlHours" value="24" min="1" max="168">
+      </div>
+      <button class="btn btn-primary" onclick="generateCode()" style="width: 100%;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Generate Code
+      </button>
+    </div>
+
+    <div class="card">
+      <h2>Connection Code</h2>
+      <div class="code-display" id="codeDisplay">Click "Generate Code" to create a connection code</div>
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <button class="btn btn-ghost" onclick="copyCode()" style="flex: 1;" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Code
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadCode()" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2>Active Tunnels</h2>
+      <div class="tunnels-list" id="tunnelsList">
+        <div class="tunnel-item" style="justify-content: center; color: var(--text-dim);">No active tunnels</div>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2>Metrics</h2>
+      <div class="metrics-grid" id="metricsGrid">
+        <div class="metric">
+          <div class="metric-value" id="pingValue">--</div>
+          <div class="metric-label">Ping (ms)</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value" id="lossValue">--</div>
+          <div class="metric-label">Packet Loss (%)</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value" id="bwValue">--</div>
+          <div class="metric-label">Bandwidth (Mbps)</div>
+        </div>
+      </div>
+      <div class="chart-container" style="margin-top: 16px;">
+        <canvas class="chart-canvas" id="metricsChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2>Logs</h2>
+      <div class="logs" id="logs"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const token = "{{.Token}}";
+const role = "{{.Role}}";
+let metricsHistory = { ping: [], loss: [], bw: [], time: [] };
+let chart = null;
+
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', 'X-Admin-Token': token };
+  const res = await fetch(path, { ...options, headers });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+function showToast(msg, type = 'info') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show ' + type;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function logEntry(msg, level = 'info') {
+  const logs = document.getElementById('logs');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${new Date().toLocaleTimeString()}</span><span class="log-level ${level}">[${level.toUpperCase()}]</span> ${msg}`;
+  logs.insertBefore(entry, logs.firstChild);
+  while (logs.children.length > 100) logs.removeChild(logs.lastChild);
+}
+
+async function generateCode() {
+  const kharejIP = document.getElementById('kharejIP').value.trim();
+  const kharejPort = parseInt(document.getElementById('kharejPort').value) || 22;
+  const kharejUser = document.getElementById('kharejUser').value.trim();
+  const tunnelPorts = document.getElementById('tunnelPorts').value.split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+  const ttlHours = parseInt(document.getElementById('ttlHours').value) || 24;
+
+  if (!kharejIP || !kharejUser) {
+    showToast('Please fill all required fields', 'error');
+    return;
+  }
+
+  try {
+    const res = await api('/api/code', {
+      method: 'POST',
+      body: JSON.stringify({ kharej_ip: kharejIP, kharej_port: kharejPort, ssh_user: kharejUser, tunnel_ports: tunnelPorts, ttl_hours: ttlHours })
+    });
+    document.getElementById('codeDisplay').textContent = res.code;
+    document.getElementById('codeDisplay').classList.remove('copied');
+    document.querySelector('#codeDisplay + div button:first-child').disabled = false;
+    document.querySelector('#codeDisplay + div button:last-child').disabled = false;
+    showToast('Connection code generated');
+    logEntry(`Generated code for ${kharejUser}@${kharejIP}:${kharejPort}`, 'success');
+  } catch (e) {
+    showToast('Failed: ' + e.message, 'error');
+    logEntry('Generate code failed: ' + e.message, 'error');
+  }
+}
+
+async function copyCode() {
+  const code = document.getElementById('codeDisplay').textContent;
+  if (!code || code.includes('Click')) return;
+  await navigator.clipboard.writeText(code);
+  document.getElementById('codeDisplay').classList.add('copied');
+  showToast('Code copied to clipboard', 'success');
+}
+
+function downloadCode() {
+  const code = document.getElementById('codeDisplay').textContent;
+  if (!code || code.includes('Click')) return;
+  const blob = new Blob([code], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vpn-connection-code.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Code downloaded', 'success');
+}
+
+function updateStatus(connected) {
+  const badge = document.getElementById('connectionStatus');
+  if (connected) {
+    badge.className = 'status-badge connected';
+    badge.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+  } else {
+    badge.className = 'status-badge disconnected';
+    badge.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+  }
+}
+
+function renderTunnels(tunnels) {
+  const container = document.getElementById('tunnelsList');
+  if (!tunnels.length) {
+    container.innerHTML = '<div class="tunnel-item" style="justify-content: center; color: var(--text-dim);">No active tunnels</div>';
+    return;
+  }
+  container.innerHTML = tunnels.map(t => `
+    <div class="tunnel-item">
+      <div class="tunnel-info">
+        <span class="tunnel-route">${t.remote_user}@${t.remote_host}:${t.remote_port} &larr; localhost:${t.local_port}</span>
+        <span class="tunnel-meta">Reverse tunnel &bull; ${t.running ? 'Running' : 'Stopped'}</span>
+      </div>
+      <div class="tunnel-status">
+        <span class="status-badge ${t.running ? 'connected' : 'disconnected'}">
+          <span class="status-dot"></span>
+          <span>${t.running ? 'Up' : 'Down'}</span>
+        </span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateMetrics(data) {
+  if (!data.metrics) return;
+  const m = data.metrics;
+  document.getElementById('pingValue').textContent = m.PingMs.toFixed(1);
+  document.getElementById('lossValue').textContent = m.PacketLoss.toFixed(1);
+  document.getElementById('bwValue').textContent = m.BandwidthMbps.toFixed(1);
+
+  const pingVal = document.getElementById('pingValue');
+  pingVal.className = 'metric-value ' + (m.PingMs < 100 ? 'ok' : m.PingMs < 300 ? 'warn' : 'danger');
+  const lossVal = document.getElementById('lossValue');
+  lossVal.className = 'metric-value ' + (m.PacketLoss < 1 ? 'ok' : m.PacketLoss < 5 ? 'warn' : 'danger');
+  const bwVal = document.getElementById('bwValue');
+  bwVal.className = 'metric-value ' + (m.BandwidthMbps > 10 ? 'ok' : m.BandwidthMbps > 1 ? 'warn' : 'danger');
+
+  if (m.History && m.History.length) {
+    renderChart(m.History);
+  }
+}
+
+function renderChart(history) {
+  const ctx = document.getElementById('metricsChart').getContext('2d');
+  const width = document.getElementById('metricsChart').width = document.getElementById('metricsChart').parentElement.clientWidth;
+  const height = 160;
+  document.getElementById('metricsChart').height = height;
+
+  if (chart) chart.destroy();
+
+  const labels = history.map(h => new Date(h.Time).toLocaleTimeString());
+  const pingData = history.map(h => h.PingMs);
+  const lossData = history.map(h => h.LossPct);
+  const bwData = history.map(h => h.BW_Mbps);
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Ping (ms)', data: pingData, borderColor: '#58A6FF', backgroundColor: 'rgba(88,166,255,0.1)', yAxisID: 'y', tension: 0.3, fill: true, pointRadius: 0 },
+        { label: 'Loss (%)', data: lossData, borderColor: '#D29922', backgroundColor: 'rgba(210,153,34,0.1)', yAxisID: 'y1', tension: 0.3, fill: true, pointRadius: 0 },
+        { label: 'BW (Mbps)', data: bwData, borderColor: '#238636', backgroundColor: 'rgba(35,134,54,0.1)', yAxisID: 'y2', tension: 0.3, fill: true, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#30363D' }, ticks: { color: '#8B949E', font: { family: 'JetBrains Mono', size: 10 } } },
+        y: { type: 'linear', position: 'left', grid: { color: '#30363D' }, ticks: { color: '#58A6FF', font: { family: 'JetBrains Mono', size: 10 } }, title: { display: true, text: 'ms', color: '#8B949E', font: { size: 10 } } },
+        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#D29922', font: { family: 'JetBrains Mono', size: 10 } }, title: { display: true, text: '%', color: '#8B949E', font: { size: 10 } } },
+        y2: { type: 'linear', position: 'right', offset: true, grid: { drawOnChartArea: false }, ticks: { color: '#238636', font: { family: 'JetBrains Mono', size: 10 } }, title: { display: true, text: 'Mbps', color: '#8B949E', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+async function fetchStatus() {
+  try {
+    const data = await api('/api/status');
+    updateStatus(data.connected);
+    renderTunnels(data.tunnels);
+  } catch (e) {
+    console.error('Status fetch failed:', e);
+  }
+}
+
+function connectSSE() {
+  const es = new EventSource('/events');
+  es.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    updateStatus(data.connected);
+    if (data.metrics) updateMetrics(data);
+  };
+  es.onerror = () => {
+    es.close();
+    setTimeout(connectSSE, 5000);
+  };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  fetchStatus();
+  setInterval(fetchStatus, 5000);
+  connectSSE();
+  logEntry('Dashboard loaded', 'info');
+});
+
+// Minimal Chart.js implementation (embedded to avoid CDN)
+class Chart {
+  constructor(ctx, config) { this.ctx = ctx; this.config = config; this.draw(); }
+  destroy() { this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height); }
+  draw() {
+    const { ctx, config } = this;
+    const { data, options } = config;
+    const { labels, datasets } = data;
+    const width = ctx.canvas.width, height = ctx.canvas.height;
+    const padding = { top: 20, right: 60, bottom: 30, left: 50 };
+    const chartW = width - padding.left - padding.right;
+    const chartH = height - padding.top - padding.bottom;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.font = '10px JetBrains Mono';
+    ctx.strokeStyle = '#30363D';
+    ctx.fillStyle = '#8B949E';
+
+    // Draw grids and axes
+    datasets.forEach((ds, di) => {
+      const axisID = ds.yAxisID || 'y';
+      const axis = options.scales[axisID];
+      if (!axis) return;
+      const color = ds.borderColor;
+      const values = ds.data;
+      const min = Math.min(...values.filter(v => v !== null));
+      const max = Math.max(...values.filter(v => v !== null));
+      const range = max - min || 1;
+
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      values.forEach((v, i) => {
+        if (v === null) return;
+        const x = padding.left + (i / (labels.length - 1 || 1)) * chartW;
+        const y = padding.top + chartH - ((v - min) / range) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Fill
+      if (ds.fill) {
+        ctx.fillStyle = ds.backgroundColor;
+        ctx.lineTo(padding.left + chartW, padding.top + chartH);
+        ctx.lineTo(padding.left, padding.top + chartH);
+        ctx.closePath();
+        ctx.fill();
+      }
+    });
+  }
+}
+</script>
+</body>
+</html>
