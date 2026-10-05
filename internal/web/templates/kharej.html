@@ -1,140 +1,243 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VPN Tunnel Manager - Kharej Server</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0D1117;
-  --card: #161B22;
+  --bg-elevated: #161B22;
   --border: #30363D;
+  --border-subtle: #21262D;
   --text: #F0F6FC;
-  --text-dim: #8B949E;
-  --success: #238636;
-  --success-bg: #196C2E;
-  --warning: #D29922;
-  --warning-bg: #9E6A03;
-  --danger: #DA3633;
-  --danger-bg: #A40E26;
+  --text-secondary: #8B949E;
+  --text-muted: #6E7681;
   --accent: #58A6FF;
-  --accent-bg: #1F4E7A;
-  --code-bg: #0D1117;
+  --accent-hover: #79C0FF;
+  --accent-bg: rgba(88, 166, 255, 0.1);
+  --success: #3FB950;
+  --success-bg: rgba(63, 185, 80, 0.15);
+  --success-border: #3FB950;
+  --warning: #D29922;
+  --warning-bg: rgba(210, 153, 34, 0.15);
+  --warning-border: #D29922;
+  --danger: #F85149;
+  --danger-bg: rgba(248, 81, 73, 0.15);
+  --danger-border: #F85149;
   --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --transition: 150ms ease;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
+
+[data-theme="light"] {
+  --bg: #F6F8FA;
+  --bg-elevated: #FFFFFF;
+  --border: #D0D7DE;
+  --border-subtle: #E1E4E8;
+  --text: #1F2328;
+  --text-secondary: #57606A;
+  --text-muted: #6E7781;
+  --accent: #0969DA;
+  --accent-hover: #0860CA;
+  --accent-bg: rgba(9, 105, 218, 0.1);
+  --success: #2DA44E;
+  --success-bg: rgba(45, 164, 78, 0.1);
+  --success-border: #2DA44E;
+  --warning: #BF8700;
+  --warning-bg: rgba(191, 135, 0, 0.1);
+  --warning-border: #BF8700;
+  --danger: #CF222E;
+  --danger-bg: rgba(207, 34, 46, 0.1);
+  --danger-border: #CF222E;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; }
 body {
-  font-family: var(--mono);
+  font-family: var(--sans);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   line-height: 1.6;
-  font-size: 14px;
+  transition: background var(--transition), color var(--transition);
 }
+.mono { font-family: var(--mono); }
+
 .header {
   border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
-  background: rgba(22, 27, 34, 0.8);
-  backdrop-filter: blur(8px);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  padding: 14px 24px;
+  background: rgba(22, 27, 34, 0.9);
+  backdrop-filter: saturate(180%) blur(12px);
+  position: sticky; top: 0; z-index: 100;
+  transition: background var(--transition), border-color var(--transition);
 }
-.header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-.title span { color: var(--warning); }
-.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; }
-.status-badge.connected { background: var(--success-bg); color: #7EE787; }
-.status-badge.disconnected { background: var(--danger-bg); color: #F85149; }
-.status-badge.connecting { background: var(--warning-bg); color: #E3B341; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+[data-theme="light"] .header { background: rgba(255, 255, 255, 0.9); }
+.header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; font-family: var(--sans); }
+.title .role { color: var(--warning); font-weight: 600; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; font-family: var(--sans); letter-spacing: 0.02em; text-transform: uppercase; }
+.status-badge.connected { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+.status-badge.disconnected { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+.status-badge.connecting { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-.main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.theme-toggle { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--border); background: var(--bg-elevated); border-radius: var(--radius-md); color: var(--text-secondary); cursor: pointer; transition: all var(--transition); }
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.theme-toggle svg { width: 20px; height: 20px; }
+.theme-toggle .sun-icon { display: none; }
+[data-theme="light"] .theme-toggle .moon-icon { display: none; }
+[data-theme="light"] .theme-toggle .sun-icon { display: block; }
+
+.main { max-width: 1400px; margin: 0 auto; padding: 24px; }
 .grid { display: grid; gap: 16px; }
-@media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1200px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+@media (min-width: 720px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1080px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 .card {
-  background: var(--card);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   padding: 20px;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
 }
-.card:hover { border-color: var(--accent); }
-.card h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-.card h2::before { content: ''; width: 4px; height: 4px; background: var(--warning); border-radius: 50%; }
-.field { margin-bottom: 16px; }
-.field:last-child { margin-bottom: 0; }
-.field label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.field textarea, .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 6px; font-family: var(--mono); font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s; }
-.field textarea:focus, .field input:focus { outline: none; border-color: var(--warning); box-shadow: 0 0 0 3px var(--warning-bg); }
-.field textarea::placeholder, .field input::placeholder { color: var(--text-dim); }
-.field textarea { min-height: 100px; resize: vertical; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 6px; font-family: var(--mono); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
+.card.full-width { grid-column: 1 / -1; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
+.card-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-family: var(--sans); display: flex; align-items: center; gap: 8px; }
+.card-title::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--warning); }
+.card-actions { display: flex; gap: 8px; }
+.field { margin-bottom: 14px; }
+.field:last-of-type { margin-bottom: 0; }
+.field label { display: block; font-size: 0.65rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--sans); margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: var(--radius-sm); font-family: var(--mono); font-size: 0.85rem; transition: all var(--transition); outline: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--warning); box-shadow: 0 0 0 3px var(--warning-bg); }
+.field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+.field textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
+.field-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; font-family: var(--sans); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border: none; border-radius: var(--radius-sm); font-family: var(--sans); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--warning); color: var(--bg); }
-.btn-primary:hover:not(:disabled) { background: #E3B341; }
-.btn-success { background: var(--success); color: white; }
-.btn-success:hover:not(:disabled) { background: #2EA043; }
-.btn-danger { background: var(--danger); color: white; }
-.btn-danger:hover:not(:disabled) { background: #F85149; }
+.btn-primary:hover:not(:disabled) { background: #E3B341; box-shadow: 0 4px 12px rgba(210, 153, 34, 0.3); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover:not(:disabled) { background: #4BC45D; box-shadow: 0 4px 12px rgba(63, 185, 80, 0.3); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #FF6B64; box-shadow: 0 4px 12px rgba(248, 81, 73, 0.3); }
 .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
-.btn-ghost:hover:not(:disabled) { background: var(--card); border-color: var(--accent); }
-.btn-lg { padding: 14px 28px; font-size: 14px; }
-.connected-info { display: flex; flex-direction: column; gap: 12px; }
-.info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.info-row:last-child { border-bottom: none; }
-.info-label { color: var(--text-dim); font-size: 12px; }
-.info-value { font-weight: 500; font-family: var(--mono); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 6px 12px; font-size: 0.7rem; }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-block { width: 100%; }
+.btn-lg { padding: 14px 28px; font-size: 1rem; }
 .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-@media (max-width: 600px) { .metrics-grid { grid-template-columns: 1fr; } }
-.metric { text-align: center; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
-.metric-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+@media (max-width: 720px) { .metrics-grid { grid-template-columns: 1fr; } }
+.metric { text-align: center; padding: 18px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all var(--transition); }
+.metric:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.metric-value { font-size: 2.25rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-family: var(--mono); transition: color var(--transition); }
 .metric-value.ok { color: var(--success); }
 .metric-value.warn { color: var(--warning); }
 .metric-value.danger { color: var(--danger); }
-.metric-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-.chart-container { height: 200px; position: relative; }
-.chart-canvas { width: 100%; height: 100%; }
-.logs { max-height: 300px; overflow-y: auto; font-size: 12px; }
-.log-entry { padding: 4px 8px; border-bottom: 1px solid var(--border); font-family: var(--mono); }
+.metric-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--sans); margin-top: 6px; }
+.chart-container { height: 200px; position: relative; margin-top: 16px; }
+.chart-canvas { width: 100%; height: 100%; display: block; }
+.logs { max-height: 320px; overflow-y: auto; font-size: 0.75rem; font-family: var(--mono); scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.logs::-webkit-scrollbar { width: 6px; }
+.logs::-webkit-scrollbar-track { background: transparent; }
+.logs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.logs::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.log-entry { padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); display: flex; gap: 8px; align-items: flex-start; transition: background var(--transition); }
+.log-entry:hover { background: var(--bg); }
 .log-entry:last-child { border-bottom: none; }
-.log-time { color: var(--text-dim); margin-right: 8px; }
-.log-level.info { color: var(--accent); }
-.log-level.success { color: var(--success); }
-.log-level.warn { color: var(--warning); }
-.log-level.error { color: var(--danger); }
-.hidden { display: none !important; }
-.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 6px; background: var(--card); border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 100; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+.log-time { color: var(--text-muted); white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.log-level { font-weight: 600; text-transform: uppercase; font-size: 0.65rem; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.log-level.info { color: var(--accent); background: var(--accent-bg); }
+.log-level.success { color: var(--success); background: var(--success-bg); }
+.log-level.warn { color: var(--warning); background: var(--warning-bg); }
+.log-level.error { color: var(--danger); background: var(--danger-bg); }
+.log-message { flex: 1; word-break: break-word; color: var(--text-secondary); }
+.toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: var(--radius-md); background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-lg); z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-width: 360px; }
 .toast.show { transform: translateY(0); opacity: 1; }
-.toast.success { border-color: var(--success); }
-.toast.error { border-color: var(--danger); }
-.toast.warn { border-color: var(--warning); }
+.toast.success { border-color: var(--success-border); }
+.toast.error { border-color: var(--danger-border); }
+.toast.warn { border-color: var(--warning-border); }
+.connected-info { display: flex; flex-direction: column; gap: 10px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: var(--text-muted); font-size: 0.75rem; font-family: var(--sans); }
+.info-value { font-weight: 500; font-family: var(--mono); font-size: 0.8rem; }
+.tunnels-list { display: flex; flex-direction: column; gap: 8px; }
+.tunnel-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: all var(--transition); }
+.tunnel-item:hover { border-color: var(--accent); }
+.tunnel-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tunnel-route { font-weight: 500; font-size: 0.85rem; font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tunnel-meta { font-size: 0.7rem; color: var(--text-muted); font-family: var(--sans); }
+.tunnel-status { display: flex; align-items: center; gap: 10px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; text-align: center; color: var(--text-muted); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; color: var(--text-secondary); }
+.empty-state span { font-size: 0.75rem; }
+@media (max-width: 600px) {
+  .header-content { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .header-actions { width: 100%; justify-content: space-between; }
+  .main { padding: 16px; }
+  .card { padding: 16px; }
+  .metrics-grid { grid-template-columns: 1fr; }
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.card { animation: slideIn 0.3s ease backwards; }
+.card:nth-child(1) { animation-delay: 0ms; }
+.card:nth-child(2) { animation-delay: 50ms; }
+.card:nth-child(3) { animation-delay: 100ms; }
+.card:nth-child(4) { animation-delay: 150ms; }
+.card:nth-child(5) { animation-delay: 200ms; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spinner { animation: spin 1s linear infinite; }
 </style>
 </head>
 <body>
 <div class="header">
   <div class="header-content">
-    <div class="title">VPN Tunnel Manager <span>Kharej</span></div>
-    <div id="connectionStatus" class="status-badge disconnected">
-      <span class="status-dot"></span>
-      <span>Disconnected</span>
+    <div class="title">VPN Tunnel Manager <span class="role">Kharej</span></div>
+    <div class="header-actions">
+      <div id="connectionStatus" class="status-badge disconnected">
+        <span class="status-dot"></span>
+        <span>Disconnected</span>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
     </div>
   </div>
 </div>
 
 <div class="main">
   <div class="grid">
-    <div class="card" style="grid-column: 1 / -1;">
-      <h2>Paste Connection Code</h2>
-      <div class="field">
-        <label>Connection Code from Iran Server</label>
-        <textarea id="codeInput" placeholder="vpn://..."></textarea>
+    <!-- Paste Code -->
+    <div class="card full-width">
+      <div class="card-header">
+        <h3 class="card-title">Paste Connection Code</h3>
       </div>
-      <div style="display: flex; gap: 12px;">
+      <div class="field">
+        <label>Connection Code from Iran Server <span style="color:var(--danger)">*</span></label>
+        <textarea id="codeInput" placeholder="vpn://..." autocomplete="off"></textarea>
+        <div class="field-hint">Paste the vpn:// code generated from the Iran dashboard</div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
         <button class="btn btn-primary btn-lg" onclick="connect()" style="flex: 1;" id="connectBtn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
           Connect
@@ -146,47 +249,73 @@ body {
       </div>
     </div>
 
+    <!-- Server Info -->
     <div class="card">
-      <h2>Server Info</h2>
+      <div class="card-header">
+        <h3 class="card-title">Server Info</h3>
+      </div>
       <div class="connected-info" id="serverInfo" style="display: none;">
-        <div class="info-row"><span class="info-label">Iran Server</span><span class="info-value" id="infoIranIP">--</span></div>
-        <div class="info-row"><span class="info-label">SSH Port</span><span class="info-value" id="infoIranPort">--</span></div>
-        <div class="info-row"><span class="info-label">SSH User</span><span class="info-value" id="infoSSHUser">--</span></div>
-        <div class="info-row"><span class="info-label">Connected Since</span><span class="info-value" id="infoConnectTime">--</span></div>
+        <div class="info-row"><span class="info-label">Iran Server</span><span class="info-value mono" id="infoIranIP">--</span></div>
+        <div class="info-row"><span class="info-label">SSH Port</span><span class="info-value mono" id="infoIranPort">--</span></div>
+        <div class="info-row"><span class="info-label">SSH User</span><span class="info-value mono" id="infoSSHUser">--</span></div>
+        <div class="info-row"><span class="info-label">Connected Since</span><span class="info-value mono" id="infoConnectTime">--</span></div>
       </div>
-      <div id="serverInfoEmpty" style="color: var(--text-dim); text-align: center; padding: 40px 0;">Not connected. Paste a code above to connect.</div>
+      <div id="serverInfoEmpty" class="empty-state" style="padding: 32px 16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/><polyline points="10 17 15 12 10 7"/></svg>
+        <p>Not connected</p>
+        <span>Paste a connection code above to establish tunnel</span>
+      </div>
     </div>
 
+    <!-- Active Tunnels -->
     <div class="card">
-      <h2>Active Tunnels</h2>
+      <div class="card-header">
+        <h3 class="card-title">Active Tunnels</h3>
+        <span class="mono" id="tunnelCount" style="font-size:0.7rem;color:var(--text-muted);">0 active</span>
+      </div>
       <div class="tunnels-list" id="tunnelsList">
-        <div class="tunnel-item" style="justify-content: center; color: var(--text-dim);">No active tunnels</div>
+        <div class="empty-state" style="padding: 24px 16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/><polyline points="10 17 15 12 10 7"/></svg>
+          <p>No active tunnels</p>
+          <span>Connect using a code from Iran server</span>
+        </div>
       </div>
     </div>
 
-    <div class="card" style="grid-column: 1 / -1;">
-      <h2>Live Metrics</h2>
+    <!-- Metrics -->
+    <div class="card full-width">
+      <div class="card-header">
+        <h3 class="card-title">Live Metrics</h3>
+        <div class="metric-status" id="metricStatus" style="font-size:0.7rem;color:var(--text-muted);">Waiting for connection...</div>
+      </div>
       <div class="metrics-grid" id="metricsGrid">
         <div class="metric">
-          <div class="metric-value" id="pingValue">--</div>
+          <div class="metric-value mono" id="pingValue">--</div>
           <div class="metric-label">Ping (ms)</div>
         </div>
         <div class="metric">
-          <div class="metric-value" id="lossValue">--</div>
+          <div class="metric-value mono" id="lossValue">--</div>
           <div class="metric-label">Packet Loss (%)</div>
         </div>
         <div class="metric">
-          <div class="metric-value" id="bwValue">--</div>
+          <div class="metric-value mono" id="bwValue">--</div>
           <div class="metric-label">Bandwidth (Mbps)</div>
         </div>
       </div>
-      <div class="chart-container" style="margin-top: 16px;">
+      <div class="chart-container">
         <canvas class="chart-canvas" id="metricsChart"></canvas>
       </div>
     </div>
 
-    <div class="card" style="grid-column: 1 / -1;">
-      <h2>Logs</h2>
+    <!-- Logs -->
+    <div class="card full-width">
+      <div class="card-header">
+        <h3 class="card-title">Activity Log</h3>
+        <button class="btn btn-ghost btn-sm" onclick="clearLogs()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Clear
+        </button>
+      </div>
       <div class="logs" id="logs"></div>
     </div>
   </div>
@@ -197,8 +326,23 @@ body {
 <script>
 const token = "{{.Token}}";
 const role = "{{.Role}}";
-let metricsHistory = { ping: [], loss: [], bw: [], time: [] };
 let chart = null;
+let maxHistoryPoints = 60;
+
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+}
+document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
+initTheme();
 
 async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', 'X-Admin-Token': token };
@@ -218,32 +362,27 @@ function logEntry(msg, level = 'info') {
   const logs = document.getElementById('logs');
   const entry = document.createElement('div');
   entry.className = 'log-entry';
-  entry.innerHTML = `<span class="log-time">${new Date().toLocaleTimeString()}</span><span class="log-level ${level}">[${level.toUpperCase()}]</span> ${msg}`;
+  entry.innerHTML = `<span class="log-time">${new Date().toLocaleTimeString()}</span><span class="log-level ${level}">${level.toUpperCase()}</span><span class="log-message">${msg}</span>`;
   logs.insertBefore(entry, logs.firstChild);
-  while (logs.children.length > 100) logs.removeChild(logs.lastChild);
+  while (logs.children.length > 150) logs.removeChild(logs.lastChild);
+}
+
+function clearLogs() {
+  document.getElementById('logs').innerHTML = '';
+  showToast('Logs cleared');
 }
 
 async function connect() {
   const code = document.getElementById('codeInput').value.trim();
-  if (!code) {
-    showToast('Please paste a connection code', 'error');
-    return;
-  }
-
-  if (!code.startsWith('vpn://')) {
-    showToast('Invalid code format', 'error');
-    return;
-  }
+  if (!code) { showToast('Please paste a connection code', 'error'); return; }
+  if (!code.startsWith('vpn://')) { showToast('Invalid code format', 'error'); return; }
 
   const btn = document.getElementById('connectBtn');
   btn.disabled = true;
-  btn.innerHTML = '<svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"/></svg> Connecting...';
+  btn.innerHTML = '<svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"/></svg> Connecting...';
 
   try {
-    await api('/api/connect', {
-      method: 'POST',
-      body: JSON.stringify({ code })
-    });
+    await api('/api/connect', { method: 'POST', body: JSON.stringify({ code }) });
     showToast('Connected successfully', 'success');
     logEntry('Tunnel established', 'success');
   } catch (e) {
@@ -284,7 +423,7 @@ function updateStatus(connected) {
     connectBtn.disabled = false;
     disconnectBtn.disabled = true;
     serverInfo.style.display = 'none';
-    serverInfoEmpty.style.display = 'block';
+    serverInfoEmpty.style.display = 'flex';
     connectBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Connect';
   }
 }
@@ -300,15 +439,23 @@ function updateServerInfo(data) {
 
 function renderTunnels(tunnels) {
   const container = document.getElementById('tunnelsList');
+  const countEl = document.getElementById('tunnelCount');
+  countEl.textContent = `${tunnels.filter(t => t.running).length} active / ${tunnels.length} total`;
+
   if (!tunnels.length) {
-    container.innerHTML = '<div class="tunnel-item" style="justify-content: center; color: var(--text-dim);">No active tunnels</div>';
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 24px 16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/><polyline points="10 17 15 12 10 7"/></svg>
+        <p>No active tunnels</p>
+        <span>Connect using a code from Iran server</span>
+      </div>`;
     return;
   }
   container.innerHTML = tunnels.map(t => `
     <div class="tunnel-item">
       <div class="tunnel-info">
-        <span class="tunnel-route">${t.remote_user}@${t.remote_host}:${t.remote_port} &larr; localhost:${t.local_port}</span>
-        <span class="tunnel-meta">Reverse tunnel &bull; ${t.running ? 'Running' : 'Stopped'}</span>
+        <span class="tunnel-route mono">${t.remote_user}@${t.remote_host}:${t.remote_port} ← localhost:${t.local_port}</span>
+        <span class="tunnel-meta">Reverse tunnel • ${t.running ? 'Running' : 'Stopped'}</span>
       </div>
       <div class="tunnel-status">
         <span class="status-badge ${t.running ? 'connected' : 'disconnected'}">
@@ -323,16 +470,20 @@ function renderTunnels(tunnels) {
 function updateMetrics(data) {
   if (!data.metrics) return;
   const m = data.metrics;
-  document.getElementById('pingValue').textContent = m.PingMs.toFixed(1);
-  document.getElementById('lossValue').textContent = m.PacketLoss.toFixed(1);
-  document.getElementById('bwValue').textContent = m.BandwidthMbps.toFixed(1);
+  const pingEl = document.getElementById('pingValue');
+  const lossEl = document.getElementById('lossValue');
+  const bwEl = document.getElementById('bwValue');
 
-  const pingVal = document.getElementById('pingValue');
-  pingVal.className = 'metric-value ' + (m.PingMs < 100 ? 'ok' : m.PingMs < 300 ? 'warn' : 'danger');
-  const lossVal = document.getElementById('lossValue');
-  lossVal.className = 'metric-value ' + (m.PacketLoss < 1 ? 'ok' : m.PacketLoss < 5 ? 'warn' : 'danger');
-  const bwVal = document.getElementById('bwValue');
-  bwVal.className = 'metric-value ' + (m.BandwidthMbps > 10 ? 'ok' : m.BandwidthMbps > 1 ? 'warn' : 'danger');
+  pingEl.textContent = m.PingMs.toFixed(1);
+  lossEl.textContent = m.PacketLoss.toFixed(1);
+  bwEl.textContent = m.BandwidthMbps.toFixed(1);
+
+  pingEl.className = 'metric-value mono ' + (m.PingMs < 100 ? 'ok' : m.PingMs < 300 ? 'warn' : 'danger');
+  lossEl.className = 'metric-value mono ' + (m.PacketLoss < 1 ? 'ok' : m.PacketLoss < 5 ? 'warn' : 'danger');
+  bwEl.className = 'metric-value mono ' + (m.BandwidthMbps > 10 ? 'ok' : m.BandwidthMbps > 1 ? 'warn' : 'danger');
+
+  const statusEl = document.getElementById('metricStatus');
+  statusEl.textContent = `Last updated: ${new Date(m.Timestamp).toLocaleTimeString()} | Target: ${m.TargetIP}`;
 
   if (m.History && m.History.length) {
     renderChart(m.History);
@@ -340,37 +491,124 @@ function updateMetrics(data) {
 }
 
 function renderChart(history) {
-  const ctx = document.getElementById('metricsChart').getContext('2d');
-  const width = document.getElementById('metricsChart').width = document.getElementById('metricsChart').parentElement.clientWidth;
-  const height = 200;
-  document.getElementById('metricsChart').height = height;
+  const canvas = document.getElementById('metricsChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 200 * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '200px';
+  ctx.scale(dpr, dpr);
 
   if (chart) chart.destroy();
 
-  const labels = history.map(h => new Date(h.Time).toLocaleTimeString());
-  const pingData = history.map(h => h.PingMs);
-  const lossData = history.map(h => h.LossPct);
-  const bwData = history.map(h => h.BW_Mbps);
+  const width = rect.width;
+  const height = 200;
+  const padding = { top: 24, right: 70, bottom: 36, left: 58 };
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
 
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [
-      { label: 'Ping (ms)', data: pingData, borderColor: '#58A6FF', backgroundColor: 'rgba(88,166,255,0.1)', yAxisID: 'y', tension: 0.3, fill: true, pointRadius: 0 },
-      { label: 'Loss (%)', data: lossData, borderColor: '#D29922', backgroundColor: 'rgba(210,153,34,0.1)', yAxisID: 'y1', tension: 0.3, fill: true, pointRadius: 0 },
-      { label: 'BW (Mbps)', data: bwData, borderColor: '#238636', backgroundColor: 'rgba(35,134,54,0.1)', yAxisID: 'y2', tension: 0.3, fill: true, pointRadius: 0 }
-    ]},
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: '#30363D' }, ticks: { color: '#8B949E', font: { family: 'JetBrains Mono', size: 10 } } },
-        y: { type: 'linear', position: 'left', grid: { color: '#30363D' }, ticks: { color: '#58A6FF', font: { family: 'JetBrains Mono', size: 10 } }, title: { display: true, text: 'ms', color: '#8B949E', font: { size: 10 } } },
-        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#D29922', font: { family: 'JetBrains Mono', size: 10 } }, title: { display: true, text: '%', color: '#8B949E', font: { size: 10 } } },
-        y2: { type: 'linear', position: 'right', offset: true, grid: { drawOnChartArea: false }, ticks: { color: '#238636', font: { family: 'JetBrains Mono', size: 10 } }, title: { display: true, text: 'Mbps', color: '#8B949E', font: { size: 10 } } }
-      }
+  const labels = history.map(h => new Date(h.Time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}));
+  const datasets = [
+    { key: 'ping', label: 'Ping (ms)', data: history.map(h => h.PingMs), color: '#58A6FF', axis: 'y' },
+    { key: 'loss', label: 'Loss (%)', data: history.map(h => h.LossPct), color: '#D29922', axis: 'y1' },
+    { key: 'bw', label: 'BW (Mbps)', data: history.map(h => h.BW_Mbps), color: '#3FB950', axis: 'y2' }
+  ];
+
+  const axes = {
+    y: { data: datasets[0].data, label: 'ms', color: '#58A6FF', pos: 'left' },
+    y1: { data: datasets[1].data, label: '%', color: '#D29922', pos: 'right' },
+    y2: { data: datasets[2].data, label: 'Mbps', color: '#3FB950', pos: 'right', offset: true }
+  };
+
+  Object.values(axes).forEach(ax => {
+    const vals = ax.data.filter(v => v !== null && v !== undefined);
+    ax.min = vals.length ? Math.min(...vals) : 0;
+    ax.max = vals.length ? Math.max(...vals) : 1;
+    if (ax.max === ax.min) { ax.max = ax.min + 1; ax.min = Math.max(0, ax.min - 1); }
+    const pad = (ax.max - ax.min) * 0.1;
+    ax.max += pad; ax.min -= pad;
+    if (ax.min < 0) ax.min = 0;
+  });
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.font = '10px JetBrains Mono';
+  ctx.textBaseline = 'middle';
+
+  ctx.strokeStyle = '#21262D';
+  ctx.lineWidth = 1;
+  const gridLines = 5;
+  for (let i = 0; i <= gridLines; i++) {
+    const y = padding.top + (i / gridLines) * chartH;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(padding.left + chartW, y);
+    ctx.stroke();
+  }
+
+  Object.entries(axes).forEach(([key, ax]) => {
+    const x = ax.pos === 'left' ? padding.left - 8 : width - padding.right + (ax.offset ? 50 : 8);
+    const align = ax.pos === 'left' ? 'right' : 'left';
+    ctx.fillStyle = ax.color;
+    ctx.textAlign = align;
+    for (let i = 0; i <= gridLines; i++) {
+      const val = ax.max - (i / gridLines) * (ax.max - ax.min);
+      const y = padding.top + (i / gridLines) * chartH + 3;
+      ctx.fillText(val.toFixed(ax.key === 'y1' ? 1 : 0), x, y);
+    }
+    ctx.save();
+    ctx.translate(ax.pos === 'left' ? 16 : width - 16, height / 2);
+    ctx.rotate(ax.pos === 'left' ? -Math.PI/2 : Math.PI/2);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = ax.color;
+    ctx.fillText(ax.label, 0, 0);
+    ctx.restore();
+  });
+
+  ctx.fillStyle = '#6E7681';
+  ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(labels.length / 8));
+  labels.forEach((label, i) => {
+    if (i % step === 0 || i === labels.length - 1) {
+      const x = padding.left + (i / (labels.length - 1 || 1)) * chartW;
+      ctx.fillText(label, x, height - padding.bottom + 16);
     }
   });
+
+  datasets.forEach(ds => {
+    const ax = axes[ds.axis];
+    const values = ds.data;
+    const range = ax.max - ax.min;
+
+    ctx.beginPath();
+    ctx.strokeStyle = ds.color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    values.forEach((v, i) => {
+      if (v === null || v === undefined) return;
+      const x = padding.left + (i / (labels.length - 1 || 1)) * chartW;
+      const y = padding.top + chartH - ((v - ax.min) / range) * chartH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    const hex = ds.color;
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    ctx.fillStyle = `rgba(${r},${g},${b},0.08)`;
+
+    ctx.lineTo(padding.left + chartW, padding.top + chartH);
+    ctx.lineTo(padding.left, padding.top + chartH);
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  chart = { destroy: () => ctx.clearRect(0,0,width,height) };
 }
 
 async function fetchStatus() {
@@ -392,10 +630,7 @@ function connectSSE() {
     updateServerInfo(data);
     if (data.metrics) updateMetrics(data);
   };
-  es.onerror = () => {
-    es.close();
-    setTimeout(connectSSE, 5000);
-  };
+  es.onerror = () => { es.close(); setTimeout(connectSSE, 5000); };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -404,61 +639,6 @@ document.addEventListener('DOMContentLoaded', () => {
   connectSSE();
   logEntry('Dashboard loaded', 'info');
 });
-
-// Embedded Chart.js
-class Chart {
-  constructor(ctx, config) { this.ctx = ctx; this.config = config; this.draw(); }
-  destroy() { this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height); }
-  draw() {
-    const { ctx, config } = this;
-    const { data, options } = config;
-    const { labels, datasets } = data;
-    const width = ctx.canvas.width, height = ctx.canvas.height;
-    const padding = { top: 20, right: 60, bottom: 30, left: 50 };
-    const chartW = width - padding.left - padding.right;
-    const chartH = height - padding.top - padding.bottom;
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.font = '10px JetBrains Mono';
-    ctx.strokeStyle = '#30363D';
-    ctx.fillStyle = '#8B949E';
-
-    datasets.forEach((ds, di) => {
-      const axisID = ds.yAxisID || 'y';
-      const axis = options.scales[axisID];
-      if (!axis) return;
-      const color = ds.borderColor;
-      const values = ds.data;
-      const min = Math.min(...values.filter(v => v !== null));
-      const max = Math.max(...values.filter(v => v !== null));
-      const range = max - min || 1;
-
-      ctx.beginPath();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      values.forEach((v, i) => {
-        if (v === null) return;
-        const x = padding.left + (i / (labels.length - 1 || 1)) * chartW;
-        const y = padding.top + chartH - ((v - min) / range) * chartH;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      if (ds.fill) {
-        ctx.fillStyle = ds.backgroundColor;
-        ctx.lineTo(padding.left + chartW, padding.top + chartH);
-        ctx.lineTo(padding.left, padding.top + chartH);
-        ctx.closePath();
-        ctx.fill();
-      }
-    });
-  }
-}
 </script>
-<style>
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.spinner { animation: spin 1s linear infinite; }
-</style>
 </body>
 </html>
