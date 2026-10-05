@@ -2,6 +2,20 @@
 
 A self-hosted VPN tunnel manager with web UI for creating SSH tunnels between an Iran server and a Kharej (outside Iran) server. Features real-time metrics including ping, packet loss, and bandwidth monitoring.
 
+## One-Line Install (Ubuntu 22.04)
+
+**Iran Server:**
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) iran --iran-ip <YOUR_IRAN_IP>
+```
+
+**Kharej Server:**
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) kharej --kharej-ip <YOUR_KHAREJ_IP>
+```
+
+> The script auto-installs Go, builds the binary, sets up systemd, and starts the service.
+
 ## Architecture
 
 ```
