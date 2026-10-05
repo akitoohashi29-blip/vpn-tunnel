@@ -8,7 +8,7 @@ set -euo pipefail
 #   ./install.sh [--local]
 
 REPO_URL="https://github.com/akitoohashi29-blip/vpn-tunnel"
-RAW_BASE="https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main"
+RAW_BASE="https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master"
 GO_VERSION="1.23.0"
 
 ROLE=""

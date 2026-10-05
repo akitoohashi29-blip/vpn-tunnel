@@ -6,7 +6,7 @@ A self-hosted VPN tunnel manager with web UI for creating SSH tunnels between an
 
 **Run on either server - fully interactive with IP auto-detection:**
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master/deploy/install.sh)
 ```
 
 The installer will:
@@ -19,10 +19,10 @@ The installer will:
 **Non-interactive (for automation):**
 ```bash
 # Iran server
-bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) --role iran --iran-ip <YOUR_IRAN_IP>
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master/deploy/install.sh) --role iran --iran-ip <YOUR_IRAN_IP>
 
 # Kharej server
-bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) --role kharej --kharej-ip <YOUR_KHAREJ_IP>
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master/deploy/install.sh) --role kharej --kharej-ip <YOUR_KHAREJ_IP>
 ```
 
 **Install script options:**
@@ -62,14 +62,14 @@ bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunne
 
 **On Iran Server:**
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master/deploy/install.sh)
 # Select: 1) Iran Server
 # Confirm/enter your Iran public IP
 ```
 
 **On Kharej Server:**
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master/deploy/install.sh)
 # Select: 2) Kharej Server
 # Confirm/enter your Kharej public IP
 ```
