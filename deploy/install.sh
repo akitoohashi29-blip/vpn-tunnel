@@ -248,7 +248,16 @@ echo "=== Installation Complete ==="
 echo "Service: $SERVICE_NAME"
 echo "Role: $ROLE"
 LOCAL_IP=$(hostname -I | awk '{print $1}')
-echo "Web UI: http://$LOCAL_IP:$PORT"
+
+echo ""
+echo "┌─────────────────────────────────────────────────────────────┐"
+echo "│  DASHBOARD ACCESS                                           │"
+echo "├─────────────────────────────────────────────────────────────┤"
+echo "│  Local:     http://$LOCAL_IP:$PORT"
+if [[ -n "$PUBLIC_IP" ]]; then
+    echo "│  Public:    http://$PUBLIC_IP:$PORT"
+fi
+echo "└─────────────────────────────────────────────────────────────┘"
 echo ""
 echo "Commands:"
 echo "  Status:  systemctl status $SERVICE_NAME"
