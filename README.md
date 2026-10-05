@@ -4,12 +4,17 @@ A self-hosted VPN tunnel manager with web UI for creating SSH tunnels between an
 
 ## One-Line Install (Ubuntu 22.04)
 
-**Run on either server - it prompts for role:**
+**Run on either server - fully interactive with IP auto-detection:**
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
 ```
 
-> The script auto-installs Go, builds the binary, sets up systemd, and starts the service. It will ask whether this is the Iran or Kharej server and prompt for the required IP.
+The installer will:
+1. **Auto-detect your public IP** (via ifconfig.me, ipify.org, icanhazip.com, ipinfo.io)
+2. **List all local IPs** (non-loopback interfaces)
+3. **Prompt you to select** the correct IP or enter manually
+4. **Ask for server role** (Iran or Kharej)
+5. **Auto-install Go 1.23**, build, setup systemd, and start the service
 
 **Non-interactive (for automation):**
 ```bash
@@ -19,6 +24,19 @@ bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunne
 # Kharej server
 bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) --role kharej --kharej-ip <YOUR_KHAREJ_IP>
 ```
+
+**Install script options:**
+| Flag | Description |
+|------|-------------|
+| `--role iran\|kharej` | Set server role (skips interactive prompt) |
+| `--iran-ip <ip>` | Iran server public IP |
+| `--kharej-ip <ip>` | Kharej server public IP |
+| `--iran-port <port>` | Iran SSH port (default: 22) |
+| `--kharej-port <port>` | Kharej SSH port (default: 22) |
+| `--ssh-user <user>` | SSH username (default: root) |
+| `--port <port>` | Web UI port (default: 8080) |
+| `--local` | Build from local source instead of GitHub |
+| `--non-interactive` | Skip all prompts (requires --role and IP flags) |
 
 ## Architecture
 
@@ -40,31 +58,25 @@ bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunne
 - **Persistence**: systemd service on both servers
 - **Auth**: Single admin, token-based (no database)
 
-## Quick Start
+## Quick Start (One-Line Install)
 
-### 1. Build
-
+**On Iran Server:**
 ```bash
-git clone <repo>
-cd vpn-tunnel
-go build -o vpn-manager ./cmd/vpn-manager
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
+# Select: 1) Iran Server
+# Confirm/enter your Iran public IP
 ```
 
-### 2. Deploy to Iran Server
-
+**On Kharej Server:**
 ```bash
-scp vpn-manager root@<IRAN_IP>:/opt/vpn-manager/
-ssh root@<IRAN_IP> "cd /opt/vpn-manager && ./deploy/install.sh iran --iran-ip <IRAN_IP> --ssh-user root"
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
+# Select: 2) Kharej Server
+# Confirm/enter your Kharej public IP
 ```
 
-### 3. Deploy to Kharej Server
+That's it! Both dashboards will be available at `http://<SERVER_IP>:8080`
 
-```bash
-scp vpn-manager root@<KHAREJ_IP>:/opt/vpn-manager/
-ssh root@<KHAREJ_IP> "cd /opt/vpn-manager && ./deploy/install.sh kharej --kharej-ip <KHAREJ_IP> --ssh-user root"
-```
-
-### 4. Create Tunnel
+## Create Tunnel
 
 1. Open Iran dashboard: `http://<IRAN_IP>:8080`
 2. Enter Kharej server details (IP, SSH port, user, tunnel ports)
