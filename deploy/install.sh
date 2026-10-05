@@ -3,7 +3,7 @@ set -euo pipefail
 
 # VPN Tunnel Manager - One-Line Install for Ubuntu 22.04
 # Usage (from GitHub):
-#   bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master/deploy/install.sh)
 # Usage (local):
 #   ./install.sh [--local]
 
