@@ -3,19 +3,15 @@ set -euo pipefail
 
 # VPN Tunnel Manager - One-Line Install for Ubuntu 22.04
 # Usage (from GitHub):
-#   bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) iran --iran-ip <IP>
-#   bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) kharej --kharej-ip <IP>
-#
+#   bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
 # Usage (local):
-#   ./install.sh iran --iran-ip <IP>
+#   ./install.sh [--local]
 
 REPO_URL="https://github.com/akitoohashi29-blip/vpn-tunnel"
 RAW_BASE="https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main"
 GO_VERSION="1.23.0"
 
-ROLE="${1:-}"
-shift || true
-
+ROLE=""
 IRAN_IP=""
 IRAN_PORT=22
 KHAREJ_IP=""
@@ -23,44 +19,72 @@ KHAREJ_PORT=22
 SSH_USER="root"
 PORT=8080
 LOCAL_BUILD=false
+NON_INTERACTIVE=false
 
+# Parse args
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --iran-ip) IRAN_IP="$2"; shift 2 ;;
+        --iran-ip) IRAN_IP="$2"; shift 2; NON_INTERACTIVE=true ;;
         --iran-port) IRAN_PORT="$2"; shift 2 ;;
-        --kharej-ip) KHAREJ_IP="$2"; shift 2 ;;
+        --kharej-ip) KHAREJ_IP="$2"; shift 2; NON_INTERACTIVE=true ;;
         --kharej-port) KHAREJ_PORT="$2"; shift 2 ;;
         --ssh-user) SSH_USER="$2"; shift 2 ;;
         --port) PORT="$2"; shift 2 ;;
+        --role) ROLE="$2"; shift 2; NON_INTERACTIVE=true ;;
         --local) LOCAL_BUILD=true; shift ;;
+        --non-interactive) NON_INTERACTIVE=true; shift ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
 
+# Interactive role selection
+if [[ -z "$ROLE" ]]; then
+    echo "=== VPN Tunnel Manager Installer ==="
+    echo ""
+    echo "Select server role:"
+    echo "  1) Iran Server  (generates connection code)"
+    echo "  2) Kharej Server (connects using code from Iran)"
+    echo ""
+    read -p "Enter choice [1/2]: " choice
+    case $choice in
+        1) ROLE="iran" ;;
+        2) ROLE="kharej" ;;
+        *) echo "Invalid choice"; exit 1 ;;
+    esac
+fi
+
+# Get required IPs interactively if not provided
+if [[ "$ROLE" == "iran" && -z "$IRAN_IP" ]]; then
+    read -p "Enter Iran server public IP: " IRAN_IP
+fi
+
+if [[ "$ROLE" == "kharej" && -z "$KHAREJ_IP" ]]; then
+    read -p "Enter Kharej server public IP: " KHAREJ_IP
+fi
+
+# Validate
 if [[ "$ROLE" != "iran" && "$ROLE" != "kharej" ]]; then
-    echo "Usage: $0 [iran|kharej] [options]"
-    echo "Options:"
-    echo "  --iran-ip <ip>       Iran server IP (required for iran role)"
-    echo "  --iran-port <port>   Iran SSH port (default: 22)"
-    echo "  --kharej-ip <ip>     Kharej server IP (required for kharej role)"
-    echo "  --kharej-port <port> Kharej SSH port (default: 22)"
-    echo "  --ssh-user <user>    SSH username (default: root)"
-    echo "  --port <port>        Web UI port (default: 8080)"
-    echo "  --local              Build from local source (default: fetch from GitHub)"
+    echo "Error: Role must be 'iran' or 'kharej'"
     exit 1
 fi
 
 if [[ "$ROLE" == "iran" && -z "$IRAN_IP" ]]; then
-    echo "Error: --iran-ip is required for iran role"
+    echo "Error: Iran IP is required for iran role"
     exit 1
 fi
 
 if [[ "$ROLE" == "kharej" && -z "$KHAREJ_IP" ]]; then
-    echo "Error: --kharej-ip is required for kharej role"
+    echo "Error: Kharej IP is required for kharej role"
     exit 1
 fi
 
+echo ""
 echo "=== Installing VPN Tunnel Manager ($ROLE) ==="
+echo "Iran IP:    ${IRAN_IP:-<not needed>}"
+echo "Kharej IP:  ${KHAREJ_IP:-<not needed>}"
+echo "SSH User:   $SSH_USER"
+echo "Web Port:   $PORT"
+echo ""
 
 INSTALL_DIR="/opt/vpn-manager"
 BINARY_NAME="vpn-manager"
@@ -81,17 +105,14 @@ mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
 if [[ "$LOCAL_BUILD" == true && -f "/c/Users/this/Desktop/vpn-tunnel/cmd/vpn-manager/main.go" ]]; then
-    # Local build (for development)
     echo "Building from local source..."
     cp -r /c/Users/this/Desktop/vpn-tunnel/* .
     go build -o "$BINARY_NAME" ./cmd/vpn-manager
 else
-    # Fetch and build from GitHub
     echo "Fetching source from GitHub..."
     if command -v git &> /dev/null; then
         git clone --depth 1 "$REPO_URL" . 2>/dev/null || git pull
     else
-        # Fallback: download main.go and go.mod only (minimal build)
         mkdir -p cmd/vpn-manager internal/config internal/ssh internal/metrics internal/web/templates
         curl -fsSL "$RAW_BASE/cmd/vpn-manager/main.go" -o cmd/vpn-manager/main.go
         curl -fsSL "$RAW_BASE/go.mod" -o go.mod

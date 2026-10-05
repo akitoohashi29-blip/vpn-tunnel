@@ -4,17 +4,21 @@ A self-hosted VPN tunnel manager with web UI for creating SSH tunnels between an
 
 ## One-Line Install (Ubuntu 22.04)
 
-**Iran Server:**
+**Run on either server - it prompts for role:**
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) iran --iran-ip <YOUR_IRAN_IP>
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh)
 ```
 
-**Kharej Server:**
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) kharej --kharej-ip <YOUR_KHAREJ_IP>
-```
+> The script auto-installs Go, builds the binary, sets up systemd, and starts the service. It will ask whether this is the Iran or Kharej server and prompt for the required IP.
 
-> The script auto-installs Go, builds the binary, sets up systemd, and starts the service.
+**Non-interactive (for automation):**
+```bash
+# Iran server
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) --role iran --iran-ip <YOUR_IRAN_IP>
+
+# Kharej server
+bash <(curl -fsSL https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/main/deploy/install.sh) --role kharej --kharej-ip <YOUR_KHAREJ_IP>
+```
 
 ## Architecture
 
