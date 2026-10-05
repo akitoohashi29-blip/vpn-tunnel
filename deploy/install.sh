@@ -37,6 +37,23 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Detect public IP
+detect_public_ip() {
+    local ip=""
+    for url in "https://ifconfig.me" "https://api.ipify.org" "https://icanhazip.com" "https://ipinfo.io/ip"; do
+        ip=$(curl -fsSL --max-time 5 "$url" 2>/dev/null | tr -d '\n\r' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$') && break
+    done
+    echo "$ip"
+}
+
+# Detect local IPs (non-loopback)
+detect_local_ips() {
+    ip -4 addr show scope global 2>/dev/null | awk '/inet / {print $2}' | cut -d'/' -f1
+}
+
+PUBLIC_IP=$(detect_public_ip)
+LOCAL_IPS=($(detect_local_ips))
+
 # Interactive role selection
 if [[ -z "$ROLE" ]]; then
     echo "=== VPN Tunnel Manager Installer ==="
@@ -53,13 +70,73 @@ if [[ -z "$ROLE" ]]; then
     esac
 fi
 
-# Get required IPs interactively if not provided
-if [[ "$ROLE" == "iran" && -z "$IRAN_IP" ]]; then
-    read -p "Enter Iran server public IP: " IRAN_IP
-fi
+# Get IP with auto-detection and confirmation
+get_ip_for_role() {
+    local role=$1
+    local provided_ip=""
+    local detected_ip=""
 
-if [[ "$ROLE" == "kharej" && -z "$KHAREJ_IP" ]]; then
-    read -p "Enter Kharej server public IP: " KHAREJ_IP
+    if [[ "$role" == "iran" ]]; then
+        provided_ip="$IRAN_IP"
+        detected_ip="$PUBLIC_IP"
+    else
+        provided_ip="$KHAREJ_IP"
+        detected_ip="$PUBLIC_IP"
+    fi
+
+    # If provided via flag, use it
+    if [[ -n "$provided_ip" && "$NON_INTERACTIVE" == true ]]; then
+        echo "$provided_ip"
+        return
+    fi
+
+    # Build list of candidate IPs
+    local candidates=()
+    [[ -n "$provided_ip" ]] && candidates+=("$provided_ip (provided)")
+    [[ -n "$detected_ip" ]] && candidates+=("$detected_ip (auto-detected public)")
+    for lip in "${LOCAL_IPS[@]}"; do
+        candidates+=("$lip (local)")
+    done
+
+    if [[ ${#candidates[@]} -eq 0 ]]; then
+        read -p "Enter ${role} server IP: " manual_ip
+        echo "$manual_ip"
+        return
+    fi
+
+    if [[ "$NON_INTERACTIVE" == true ]]; then
+        # In non-interactive mode, use first available
+        echo "${candidates[0]%% *}"
+        return
+    fi
+
+    echo ""
+    echo "Detected IP addresses for ${role} server:"
+    for i in "${!candidates[@]}"; do
+        echo "  $((i+1))) ${candidates[i]}"
+    done
+    echo "  $(( ${#candidates[@]} + 1 ))) Enter manually"
+    echo ""
+
+    while true; do
+        read -p "Select IP [1-${#candidates[@]}] or Enter for first: " selection
+        selection=${selection:-1}
+        if [[ "$selection" =~ ^[0-9]+$ ]] && (( selection >= 1 && selection <= ${#candidates[@]} )); then
+            echo "${candidates[$((selection-1))]%% *}"
+            return
+        elif (( selection == ${#candidates[@]} + 1 )); then
+            read -p "Enter ${role} server IP manually: " manual_ip
+            [[ -n "$manual_ip" ]] && { echo "$manual_ip"; return; }
+        fi
+        echo "Invalid selection"
+    done
+}
+
+# Get IPs
+if [[ "$ROLE" == "iran" ]]; then
+    IRAN_IP=$(get_ip_for_role "iran")
+else
+    KHAREJ_IP=$(get_ip_for_role "kharej")
 fi
 
 # Validate
