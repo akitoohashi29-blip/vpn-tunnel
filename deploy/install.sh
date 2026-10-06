@@ -21,6 +21,9 @@ PORT=8080
 LOCAL_BUILD=false
 NON_INTERACTIVE=false
 
+# Force unbuffered output for interactive prompts (fixes bash <(curl ...) buffering)
+[[ -t 1 ]] || exec 1>/dev/tty 2>&1
+
 # Parse args
 while [[ $# -gt 0 ]]; do
     case $1 in
