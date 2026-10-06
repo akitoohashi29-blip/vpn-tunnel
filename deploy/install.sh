@@ -6,7 +6,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/akitoohashi29-blip/vpn-tunnel"
 RAW_BASE="https://raw.githubusercontent.com/akitoohashi29-blip/vpn-tunnel/master"
-GO_VERSION="1.22.5"
+GO_VERSION="1.22.12"
 
 # Colors
 red='\033[0;31m'
