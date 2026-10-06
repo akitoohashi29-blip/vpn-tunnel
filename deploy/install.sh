@@ -201,6 +201,7 @@ else
         curl -fsSL "$RAW_BASE/internal/web/templates/kharej.html" -o internal/web/templates/kharej.html
     fi
     echo "Building..."
+    go mod tidy
     go build -o "$BINARY_NAME" ./cmd/vpn-manager
 fi
 
