@@ -216,6 +216,14 @@ Example: Access Iran's port 8080 via `http://<KHAREJ_IP>:8080`
 - Verify binary exists: `ls -la /opt/vpn-manager/vpn-manager`
 - Check Go version: `go version` (needs 1.23+)
 
+### Install script features
+- Shows Go download progress bar
+- Displays each source file download status (OK/FAIL)
+- Verbose `go build -v` output
+- Polls systemd until service is `active` or `failed` (max 30s)
+- On failure, shows last 30 log lines automatically
+- Saves install result to `/etc/vpn-manager/install-result.env` (mode 600)
+
 ## Development
 
 ```bash
