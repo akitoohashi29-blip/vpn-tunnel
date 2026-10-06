@@ -71,13 +71,15 @@ prompt_or_default() {
 install_go() {
     if command -v go &>/dev/null; then
         local ver=$(go version | awk '{print $3}' | sed 's/go//')
-        [[ "$ver" == "$GO_VERSION"* ]] && return 0
+        [[ "$ver" == "$GO_VERSION"* ]] && { echo -e "${green}Go ${ver} already installed${plain}"; return 0; }
     fi
     echo -e "${green}Installing Go ${GO_VERSION}...${plain}"
-    wget -q "https://go.dev/dl/go${GO_VERSION}.linux-$(arch).tar.gz" -O /tmp/go.tar.gz
+    wget --progress=bar:force:noscroll "https://go.dev/dl/go${GO_VERSION}.linux-$(arch).tar.gz" -O /tmp/go.tar.gz
+    echo -e "${green}Extracting...${plain}"
     tar -C /usr/local -xzf /tmp/go.tar.gz
     export PATH=$PATH:/usr/local/go/bin
     echo 'export PATH=$PATH:/usr/local/go/bin' >> /root/.bashrc
+    echo -e "${green}Go installed: $(go version)${plain}"
 }
 
 # Build from source
@@ -102,14 +104,17 @@ build_binary() {
             internal/web/server.go \
             internal/web/templates/iran.html \
             internal/web/templates/kharej.html; do
-            curl -fsSL "$RAW_BASE/$f" -o "$f"
+            echo -n "  $f ... "
+            curl -fsSL "$RAW_BASE/$f" -o "$f" && echo -e "${green}OK${plain}" || echo -e "${red}FAIL${plain}"
         done
     fi
 
-    echo -e "${green}Building...${plain}"
+    echo -e "${green}Downloading dependencies...${plain}"
     go mod tidy
-    go build -o "$binary_name" ./cmd/vpn-manager
+    echo -e "${green}Building binary...${plain}"
+    go build -v -o "$binary_name" ./cmd/vpn-manager
     chmod +x "$binary_name"
+    echo -e "${green}Binary built: $install_dir/$binary_name${plain}"
 }
 
 # Generate systemd service
@@ -293,11 +298,17 @@ install_go
 build_binary
 install_service "$ROLE" "$PORT" "$IRAN_IP" "$IRAN_PORT" "$KHAREJ_IP" "$KHAREJ_PORT" "$SSH_USER"
 
-# Wait for service to be ready
-sleep 2
+# Wait for service to be ready (poll until active or failed)
+echo -e "${green}Waiting for service to start...${plain}"
+for i in {1..30}; do
+    status=$(systemctl is-active vpn-manager 2>/dev/null || echo "inactive")
+    [[ "$status" == "active" ]] && break
+    [[ "$status" == "failed" ]] && { echo -e "${red}Service failed to start${plain}"; journalctl -u vpn-manager -n 30 --no-pager; exit 1; }
+    sleep 1
+done
 
 # Get admin token from service logs
-TOKEN=$(journalctl -u vpn-manager -n 20 --no-pager 2>/dev/null | grep -o 'token=[a-f0-9]\{32\}' | head -1 | cut -d= -f2)
+TOKEN=$(journalctl -u vpn-manager -n 30 --no-pager 2>/dev/null | grep -o 'token=[a-f0-9]\{32\}' | head -1 | cut -d= -f2)
 [[ -z "$TOKEN" ]] && TOKEN="check logs: journalctl -u vpn-manager"
 
 write_result "$ROLE" "${IRAN_IP:-$KHAREJ_IP}" "$PORT" "$TOKEN"
